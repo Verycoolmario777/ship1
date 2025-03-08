@@ -1,0 +1,2105 @@
+A Compherensive Guide On How To Use Pilot.Lua
+
+Pilot.Lua is a programming language utilitized in the Roblox game "Waste of Space", it lets the player control in-game parts with code. It's based off Luau.
+Each part has their own events, methods or settings you can change. In this guide we'll cover all of them, their usages and give examples on how to use them.
+
+
+
+RULES YOU MUST OBEY
+- You have to get a part before using it.
+- You cannot use services or get parts by using game.Workspace.
+- Always try to make the code be optimized.
+- ALWAYS use task.wait() instead of wait().
+- NEVER use :GetProperties().
+
+
+
+MICROCONTROLLER GLOBALS
+Microcontroller-specific globals. These are the bridge from the code to the game.
+
+- GETTING PARTS
+    - Part GetPartFromPort(int | Part port, string partType)
+        Gets a part from the port number you specify and the part type. One port can be attached to multiple parts, and partType selects which one based on its type (e.g. "Screen").
+        The port argument lets you specify which port you want to find the part in by its ID. You can see and change a port's ID by configuring it. You can also pass a Part to search for things which are attached to it. The function considers any table with an index of GUID to be a Part, so you can also do something like GetPartFromPort({GUID = SandboxID}, partType) to get parts attached directly to the microcontroller.
+
+    - array GetPartsFromPort(int port, string partType)
+        Gets an array of parts from the given port number in no particular order.
+
+- PORTS
+    - Port GetPort(int port)
+        Returns the Port specified by the port number you input. This is the same port number from GetPartsFromPort.
+
+    - void TriggerPort(int port)
+        Triggers a Port with the port number you input. This is the same port number from GetPartsFromPort.
+
+- GLOBAL VALUES
+    - string SandboxID
+        The GUID of the microcontroller running this code.
+
+    - number SandboxRunID
+        A randomly generated numeric ID that represents the current running microcontroller script. Each time the microcontroller is ran this value will be randomized, so it is a good choice for generating unique random seeds.
+
+- MISCELLANOUS
+    - void Beep(float pitch)
+        Beeps with the given pitch.
+
+    - table JSONDecode(string json)
+        Takes a json string and decodes it, giving you a complex piece of data.
+
+    - string JSONEncode(table dataToEncode)
+        Encodes the data you give as JSON. This can be used to store complex data as a simple string. A ton of modern web services use JSON. JSON can only encode basic data, like numbers, strings, and tables. Anything else will just encode like nil does. That means that you cannot encode Instances, userdatas, functions, threads, etc.
+
+
+
+PART
+The base type for all objects.
+    
+- PROPERTIES
+    - string Part.ClassName
+        A string representing the type of the object. Ex: Port, Screen.
+
+    - string Part.GUID
+        A Globally Unique Identifier that represents this part. Mostly for internal use. However, a part's GUID can be used with GetPartFromPort to make a reference to its attached parts.
+
+    - Vector3 Part.Position
+        The part's Position.
+
+    - CFrame Part.CFrame
+        The part's CFrame.
+
+- METHODS
+    - void Part:Trigger()
+        Activates the internal :Triggered event of the part. Not all parts tie their trigger signal functionality to this event, so this method should be avoided when possible. TriggerPort can be used to produce actual trigger signals, and you can sometimes avoid signals altogether with other methods like by configuring the SwitchValue of a toggleable part.
+
+    - void Part:Configure(Dictionary properties)
+        Updates the part's configuration options.
+
+    - EventConnection Part:Connect(string Event, function callback)
+        Connects to an event on a part. Some parts have special events.
+
+- EVENTS
+    - Event "Triggered"
+        An event which fires when the part is triggered.
+
+    - Event "Configured"
+        An event which fires when the part is configured.
+
+
+
+BIN
+Bin is probably the easiest part that can be learnt. You can use a Bin to store solid materials like Iron, Titanium and much more. It can only store one resource type and it can store up to 1000.
+
+- USAGE
+    - Resource Storage
+        Bins are ideal for storing solid materials such as Iron, Titanium, and Copper.
+
+    - Crafting
+        They serve as storage for crafting ingredients, allowing players to access and use resources for crafting items.
+
+    - Inventory Management
+        Bins help players organize and manage inventories, keeping track of available resources.
+
+    - Base Building
+        Bins are incorporated into base designs as storage units, aiding in resource management and construction projects.
+
+    - Automated Systems
+        They can be part of automated resource collection and distribution systems, enhancing efficiency in gameplay.
+
+    - Trading and Commerce
+        Bins facilitate trading between players by storing excess resources for exchange and cooperation.
+
+- SETTINGS
+    - boolean CanBeCraftedFrom 
+        Stops you from using the resources in the Bin while crafting from the crafting menu.
+
+- METHODS
+    - number Bin:GetAmount()      
+        Returns the amount of the resource that's stored in the Bin.
+            Example:
+                local Bin = GetPartFromPort(1, "Bin") --Gets the Bin attached to port 1.
+                print(Bin:GetAmount()) --Prints the amount of the resource stored in the Bin.
+    
+    - string Bin:GetResource()
+        Returns the resource type that the Bin is currently storing.
+            Example:
+                local Bin = GetPartFromPort(1, "Bin") --Gets the Bin attached to port 1.
+                print(Bin:GetAmount()) --Prints the resource type stored in the Bin.
+
+- EXAMPLES
+    -- Get the Bin part from port 1 (adjust the port number if needed)
+    local binPart = GetPartFromPort(1, "Bin")
+
+    -- Configure the Bin's settings
+    binPart:Configure({
+        CanBeCraftedFrom = false -- Prevent using the Bin's resources in the crafting menu
+    })
+
+    -- Get the amount of resource stored in the Bin
+    local currentAmount = binPart:GetAmount()
+    print("Current amount:", currentAmount)
+
+    -- Get the type of resource stored in the Bin
+    local resourceType = binPart:GetResource()
+    print("Resource type:", resourceType)
+
+    -- Example scenario: Check if the Bin contains Iron and print a message
+    if resourceType == "Iron" then
+        print("The Bin contains Iron!")
+    else
+        print("The Bin does not contain Iron.")
+    end
+
+
+
+BLACKBOX
+BlackBox logs information about the region while it's turned on. It can log stuff like if anybody warped into the system, if anybody died and much more.
+
+- USAGE
+    - Security Monitoring
+        Blackboxes can log events such as player movements, arrivals, departures, and interactions within a region. This information is valuable for security purposes and monitoring player activity.
+
+- METHODS
+    - RegionLog BlackBox:GetLogs()
+        Returns a RegionLog.
+
+- EXAMPLES
+    -- Get the BlackBox part
+    local blackBox = GetPartFromPort(1, "BlackBox") -- Replace 1 with the correct port
+
+    -- Function to process and display logs
+    local function processLogs(logs)
+        for _, log in ipairs(logs) do
+            print(log.TimeAgo .. " ago - " .. log.Event .. ": " .. log.Desc) 
+            -- Example: "123 seconds ago - HyperDrive: Player 'Arab' arrived from [coordinates]"
+        end
+    end
+
+    -- Get the initial logs (optional)
+    local initialLogs = blackBox:GetLogs()
+    processLogs(initialLogs) 
+
+    -- Connect to the "Triggered" event to process new logs
+    blackBox:Connect("Triggered", function()
+        local newLogs = blackBox:GetLogs()
+        processLogs(newLogs)
+    end)
+
+
+
+REGIONLOG
+Logged event history of a region.
+
+- PROPERTIES
+    - string Event
+        The type of event. (HyperDrive, Aliens, Spawned, Death, ExitRegion, Suffocating, Freezing, Melting)
+
+    - string Desc
+        Full description of the event.
+
+    - number TimeAgo
+        The time that has passed since the event has taken place.
+
+
+
+BUTTON
+A part that sends a trigger signal when it gets triggered, presumably by a player.
+
+- USAGE
+    - Player Interaction
+        Buttons allow players to interact with in-game elements by pressing them. They can trigger events, activate mechanisms, or perform actions based on the game's mechanics.
+    
+    - Control Mechanisms 
+        Buttons are often integrated into control systems for vehicles, doors, elevators, and other interactive objects. Players can press buttons to operate these mechanisms and navigate through the game environment.
+
+- SETTINGS
+    - string KeyInput
+        You need to assign the Button a key to send a trigger signal when it's pressed if you want to use it with Seats or VehicleSeats, which you can do by changing this setting.
+    
+    - number TriggerMode
+        There are 3 TriggerModes, each changing when the Button sends a trigger signal.
+            TriggerMode 0: Trigger on key down.
+            TriggerMode 1: Trigger on key up.
+            TriggerMode 2: Trigger on key down AND key up.
+
+- EVENTS
+    - event "OnClick" (string Player)
+        Fires when the button is clicked. Outputs the name of the player who clicked it.
+            Example:
+                local Button = GetPartFromPort(1, "Button") -- Gets the Button attached to port 1.
+                Button:Connect("OnClick", function(PrintHelloWorld) -- Connects the button to the OnClick event and makes it fire the PrintHelloWorld function
+	                print("Hello, World!")
+                end)
+
+- EXAMPLES
+    -- Get the Button part 
+    local buttonPart = GetPartFromPort(1, "Button")
+
+    -- Configure button settings
+    buttonPart:Configure({
+        KeyInput = "E",      -- Trigger the button with the "E" key
+        TriggerMode = 2    -- Trigger on both key down and key up
+    })
+
+    -- Function to perform an action
+    local function performAction()
+        print("Button action performed!")
+    end
+
+    -- Connect to OnClick event (triggered by clicking the button)
+    buttonPart:Connect("OnClick", function(player)
+        print(player .. " clicked the button!")
+        performAction()  -- Call the action function
+    end)
+
+    -- Connect to Triggered event (triggered by key press or script)
+    buttonPart:Connect("Triggered", function()
+        print("Button triggered!")
+        performAction() -- Call the action function
+    end)
+
+    -- Example of using the Configure method to change KeyInput at runtime
+    task.wait(5)  -- Wait for 5 seconds
+    buttonPart:Configure({ KeyInput = "R" }) -- Change the key to "R"
+
+
+
+CONTAINER
+You can use a Container to store liquid or gas materials like Water, Petroleum, Oil and much more. It can only store one resource type and it can store up to 12500.
+
+- USAGE
+    - Resource Storage
+        Containers are used to store liquid or gas resources such as water, petroleum, oil, and other materials found within the game world. They provide a convenient and organized way to manage and access these resources.
+    
+    - Crafting and Manufacturing 
+        Containers play a crucial role in crafting and manufacturing processes, where players extract, refine, and process raw materials into usable products. They store the intermediate and final products during these processes.
+    
+    - Base Infrastructure
+        Containers are integrated into base infrastructure designs to support resource management and facilitate construction projects. They provide a centralized location for storing and distributing resources within a player's base or settlement.
+    
+    - Automation Systems
+        Containers are often incorporated into automated systems for resource collection, processing, and distribution. Players use scripting and automation tools to control the flow of materials between containers and other game elements.
+    
+    - Trading and Commerce
+        Containers enable players to trade and exchange liquid or gas resources with other players. They serve as storage units for surplus resources that can be traded for other items or currency within the game economy.
+
+- SETTINGS
+    - number Container:GetAmount()
+        Returns the amount of the resource that's stored in the Container.
+            Example:
+                local Container = GetPartFromPort(1, "Container") --Gets the Container attached to port 1.
+                print(Container:GetAmount()) --Prints the amount of the resource stored in the Container.
+
+    - string Container:GetResource()
+        Returns the resource type that the Container is currently storing.
+            Example:
+                local Container = GetPartFromPort(1, "Container") --Gets the Container attached to port 1.
+                print(Container:GetResource()) --Prints the amount of the resource stored in the Container.
+
+- EXAMPLES
+    - Container Example: Resource Monitoring and Dispensing
+
+        - Get the Container and Faucet parts
+        local containerPart = GetPartFromPort(1, "Container")
+        local faucetPart = GetPartFromPort(2, "Faucet")
+
+        -- Configure Faucet settings (optional: filter specific resource)
+        faucetPart:Configure({ 
+            Filter = "Water"  -- Only dispense Water (assuming the Container will hold water)
+        })
+
+        -- Function to check and print resource levels
+        local function monitorResources()
+            local currentAmount = containerPart:GetAmount()
+            local resourceType = containerPart:GetResource()
+            print("Resource:", resourceType, "- Amount:", currentAmount)
+        end
+
+        -- Function to dispense resources (if available)
+        local function dispenseResource()
+            if containerPart:GetAmount() > 0 then
+                faucetPart:Dispense()
+                print("Resource dispensed!")
+            else
+                print("Container is empty!")
+            end
+        end
+
+        -- Initial resource check
+        monitorResources()
+
+
+
+DISK
+You can use Disks to store information.
+
+- USAGE
+    - Data Storage 
+        Disks are primarily used to store data, such as player progress, game settings, custom configurations, and other relevant information. Players can write data to disks and read it back later, allowing for persistent storage of important game-related data.
+    
+    - Communication and Messaging 
+        Disks can serve as a communication tool, allowing players to exchange messages, leave notes, or send alerts to other players within the game world. Players can write messages to disks and share them with others, fostering communication and collaboration.
+    
+    - Data Logging and Analysis 
+        Disks can be used to log and analyze in-game data, such as resource usage, player interactions, game events, and system performance. Players can write data logs to disks and analyze them to gain insights into various aspects of the game.
+
+- METHODS
+    - void Disk:ClearDisk()
+        Wipes the disk.
+            
+    - void Disk:Write(string key, string data)
+        Writes data to the field key inside a disk.
+
+    - string Disk:Read(string key)
+        Returns any data in the key field.
+
+    - dictionary Disk:ReadEntireDisk()
+        Returns all data as a dictionary.
+    Example:
+        local Disk = GetPartFromPort(1, "Disk") --Gets the Disk attached to port 1.
+        Disk:ClearDisk() --Clears the whole disk to get rid of the previous data before writing the new data.
+        Disk:Write(A, "Hello, World!") --Writes "Hello, World!" into the A key.
+        print(Disk:Read(A)) --Prints the data in A key
+
+- EXAMPLES
+    - Disk Example: Storing and Retrieving Player Data
+
+        -- Get the Disk part
+        local disk = GetPartFromPort(1, "Disk")
+
+        -- Function to save player data
+        local function savePlayerData(playerName, data)
+            disk:Write(playerName, JSONEncode(data)) -- Encode data as JSON before storing
+        end
+
+        -- Function to load player data
+        local function loadPlayerData(playerName)
+            local dataString = disk:Read(playerName)
+            if dataString then
+                return JSONDecode(dataString)  -- Decode JSON data if found
+            else
+                return nil  -- Return nil if no data found for the player
+            end
+        end
+
+        -- Example usage: 
+        local playerName = "Arab"
+        local playerData = {
+            health = 100,
+            score = 5000,
+            inventory = {"Sword", "Shield", "Potion"}
+        }
+
+        -- Save player data to the Disk
+        savePlayerData(playerName, playerData)
+
+        -- Load player data from the Disk
+        local loadedData = loadPlayerData(playerName)
+
+        if loadedData then
+            print(playerName .. "'s data:")
+            for key, value in pairs(loadedData) do
+                print(key, ":", value)
+            end
+        else
+            print("No data found for player:", playerName)
+        end
+
+
+
+DISPENSER
+Dispenser dispenses solids from the Bin its attached to while it's active or when :Dispense() gets called.
+
+- USAGE
+    - Resource Management
+        Dispensers help players manage their resource inventories by providing controlled access to stored materials. Players can configure dispensers to dispense specific types of materials in precise quantities, helping to prevent waste and optimize resource usage.
+    
+    - Automation and Scripting
+        Dispensers can be integrated into automated systems and controlled using scripting or automation tools. Players can write scripts to monitor inventory levels, trigger dispensing actions based on certain conditions, and optimize resource management workflows.
+
+- SETTINGS
+    - string Filter
+        The name of the material allowed to be dispensed. You can add multiple materials to the filter like this: Iron Titanium Copper.
+
+- METHODS
+    - void Dispenser:Dispense()
+        Dispenses a single item from an attached bin when called.
+            Example:
+                local Bin = GetPartFromPort(1, "Bin") --Gets the Bin attached to port 1.
+                local Dispenser = GetPartFromPort(1, "Dispenser") --Gets the Dispenser attached to port 1.
+                while task.wait() do
+                    if Bin:GetAmount() >= 100 then -- Checks if there is more than 100 units in the Bin.
+                        Dispenser:Dispense() -- If so, dispense 1 unit.
+                    end
+                end
+
+- EXAMPLE
+    - Dispenser Example: Automatic Item Distribution
+
+        -- Get the Dispenser and Bin parts
+        local dispenser = GetPartFromPort(1, "Dispenser")
+        local bin = GetPartFromPort(2, "Bin")
+
+        -- Configure Dispenser settings (optional: filter specific resource)
+        dispenser:Configure({
+            Filter = "Iron" -- Only dispense Iron (ensure the Bin contains Iron)
+        })
+
+        -- Function to dispense items at regular intervals
+        local function distributeItems()
+            while task.wait(2) do -- Dispense every 2 seconds
+                if bin:GetAmount() > 0 then  -- Check if the Bin has items
+                    dispenser:Dispense()
+                    print("Item dispensed!")
+                else
+                    print("Bin is empty!") 
+                end
+            end
+        end
+
+        -- Start the item distribution loop
+        distributeItems()
+
+
+
+ENERGYSHIELD
+Generates a bubble that protects you from energy based weapons such as: Laser, EnergyGun, Warhead and much more.
+
+- USAGE
+    -Player Protection 
+        Energy shields offer protection to players against energy-based attacks, such as lasers, energy guns, and warheads. They absorb and deflect incoming energy projectiles, reducing or nullifying damage to the player character.
+    
+    -Base Defense 
+        Energy shields can be deployed to protect bases, structures, or important assets from enemy attacks. They create a defensive barrier that blocks energy-based weapons and provides a safe zone for players and valuable equipment.
+    
+    -Vehicle Armor
+        Energy shields can be installed on vehicles, such as spacecraft, rovers, or combat vehicles, to enhance their defensive capabilities. They act as armor layers, absorbing damage from energy-based weapons and increasing the vehicle's survivability in combat situations.
+    
+    -Strategic Defense 
+        Energy shields can be strategically positioned to defend key locations, chokepoints, or objectives during battles or sieges. They serve as defensive barriers that deter enemy advances and force attackers to find alternative routes or tactics.
+
+- SETTINGS
+    - number ShieldStrength (Is currently broken so won't be covered here)
+
+    - number RegenerationSpeed (Is currently broken so won't be covered here)
+
+    - number ShieldRadius
+        Changes the radius of the bubble. The bigger it is, exponentially more power it'll use. The smallest the bubble can be is 50, and the biggest is 1000.
+    
+- METHODS
+    - number EnergyShield:GetShieldHealth() -- Is currently broken, don't use.
+        Gets the shield's health
+            Example:
+                local EnergyShield = GetPartFromPort(1, "EnergyShield") --Gets the EnergyShield attached to port 1.
+                print(EnergyShield:GetShieldHealth()) --Prints the shield's health.
+
+- EXAMPLES
+    - Energy Shield Example: Protecting a Base
+
+        -- Get the EnergyShield part
+        local energyShield = GetPartFromPort(1, "EnergyShield")
+
+        -- Configure the shield radius (adjust as needed)
+        energyShield:Configure({ ShieldRadius = 200 })  -- Set radius to 200 studs
+
+        -- Function to display the shield's status (for demonstration)
+        local function showShieldStatus()
+            -- Note: GetShieldHealth is currently broken.
+            -- print("Shield Health:", energyShield:GetShieldHealth()) 
+            print("Shield Radius:", energyShield.ShieldRadius)
+        end
+
+        -- Initial status check
+        showShieldStatus()
+
+        -- Example of changing the shield radius at runtime
+        task.wait(10) -- Wait for 10 seconds
+        energyShield:Configure({ ShieldRadius = 300 }) -- Increase radius to 300 studs
+        showShieldStatus()
+
+
+
+FAUCET
+Faucet dispenses liquids and gases from the Container its attached to while it's active or when :Dispense() gets called.
+
+- USAGE
+    - Resource Management 
+        Faucets help players manage their resource inventories by providing controlled access to stored liquids or gases. Players can configure faucets to dispense specific types of resources in precise quantities, helping to prevent waste and optimize resource usage.
+
+- SETTINGS
+    - string Filter
+        The name of the material allowed to be dispensed. You can add multiple materials to the filter like this: Water Oil Petroleum.
+
+- METHODS
+    - void Faucet:Dispense()
+        Dispenses 10 units of liquid or gas from an attached Container when called.
+            Example:
+                local Container = GetPartFromPort(1, "Container") --Gets the Bin attached to port 1.
+                local Faucet = GetPartFromPort(1, "Faucet") --Gets the Faucet attached to port 1.
+                while task.wait() do
+                    if Container:GetAmount() >= 100 then -- Checks if there is more than 100 units in the Container.
+                        Faucet:Dispense() -- If so, dispense 10 units.
+                    end
+                end
+
+- EXAMPLES
+    Faucet Example: Manual Resource Dispensing
+
+        -- Get the Faucet and Container parts
+        local faucet = GetPartFromPort(1, "Faucet")
+        local container = GetPartFromPort(2, "Container")
+
+        -- Configure Faucet settings (optional: filter specific resource)
+        faucet:Configure({
+            Filter = "Water" -- Only dispense Water (ensure the Container contains Water)
+        })
+
+        -- Function to dispense resources (if available)
+        local function dispenseResource()
+            if container:GetAmount() > 0 then
+                faucet:Dispense()
+                print("Resource dispensed!")
+            else
+                print("Container is empty!")
+            end
+        end
+
+        -- Example usage: Dispense resources when a button is triggered
+        local button = GetPartFromPort(3, "Button") -- Assuming you have a button
+
+        button:Connect("Triggered", function()
+            dispenseResource()
+        end)
+
+
+
+INSTRUMENT
+Instrument can measure various things in the environment such as Temperature, or Velocity.
+
+- USAGE
+    - Environmental Monitoring
+        Instruments are used to monitor environmental conditions such as temperature, velocity, atmospheric pressure, or radiation levels. They provide players with valuable information about their surroundings, helping them make informed decisions and adapt to changing conditions.
+
+- SETTINGS
+    - string Type
+        You can change what the Instrument will display by changing the type. Refer to "INSTRUMENT/METHODS/Types" to learn the available types. This will NOT affect Instrument:GetReading(), you have to set that separately.
+
+- METHODS
+    - any Instrument:GetReading(int typeId=nil)
+        Gets the reading from the Instrument. You can also pass an integer value type and the Instrument will return that reading type.
+        Types:
+            0 - Velocity
+            1 - Rotational Velocity
+            2 - Temperature (Fahrenheit)
+            3 - Region time
+            4 - Available power
+            5 - Attached part size
+            6 - Position in the region
+            7 - Temperature in Celsius
+            8 - Orientation of the instrument
+        Example:
+            local Instrument = GetPartFromPort(1, "Instrument") --Gets the Instrument attached to port 1.
+            while task.wait(1) do --Prints the region time every second.
+                print(Instrument:GetReading(3))                
+            end
+
+- EXAMPLES
+    - Instrument Example: Monitoring Region Time and Temperature
+
+        -- Get the Instrument part
+        local instrument = GetPartFromPort(1, "Instrument")
+
+        -- Function to print region time and temperature
+        local function displayReadings()
+            local regionTime = instrument:GetReading(3) -- Get region time
+            local temperatureF = instrument:GetReading(2) -- Get temperature in Fahrenheit
+            local temperatureC = instrument:GetReading(7) -- Get temperature in Celsius 
+
+            print("Region Time:", regionTime)
+            print("Temperature (F):", temperatureF)
+            print("Temperature (C):", temperatureC)
+        end
+
+        -- Configure the Instrument to display Temperature on its screen
+        instrument:Configure({ Type = "Temperature" }) 
+
+        -- Display readings initially
+        displayReadings()
+
+        -- Continuously monitor and print readings (example)
+        while task.wait(5) do -- Update every 5 seconds
+            displayReadings()
+        end 
+
+
+
+KEYBOARD
+Keyboard allows you to get player input using a keyboard-like interface.
+
+- USAGE
+    - Security Systems
+        Players can use keyboards to input access codes or passwords to unlock doors, disable security measures, or access restricted areas within space stations or facilities. Incorrect inputs could trigger alarms or defensive measures, adding an element of challenge and strategy to gameplay.
+
+    - Data Terminals
+        Keyboards can be connected to data terminals or computer consoles where players can input commands, queries, or requests to access information, retrieve data logs, or control remote systems. Players may need to decipher clues or solve puzzles using the keyboard interface to progress through missions or uncover secrets.
+
+- METHODS
+    - void Keyboard:SimulateKeyPress(string? key, string Player)
+        Simulates a key press just like you would press a key on the keyboard.
+
+    - void Keyboard:SimulateTextInput(string? input, string Player)
+        Simulates textinput just like you would type in the keyboard and enter.
+
+- EVENTS
+    - Event "KeyPressed" (KeyCode key, string keyString, UserInputState state, string Player)
+        An event which fires when a player sitting on a Seat connected to the Keyboard presses a key. keyString is the key pressed as a string (for example, a if the player pressed A.) If shift is held, the keyString will be capitalized. If the key is non-printable (i.e. shift or backspace) keyString will be nil. state is always Enum.UserInputType.End.
+
+    - Event "TextInputted" (string text, string Player)
+        An event that fires when a player inputs text and presses "Enter" (or "Return") on the keyboard.
+
+- EXAMPLES
+    - Keyboard Example: Command Input and Execution
+
+        -- Get the Keyboard part
+        local keyboard = GetPartFromPort(1, "Keyboard")
+
+        -- Function to handle text input
+        local function onTextInput(text, player)
+            print(player .. " entered:", text)
+            
+            -- Process the command (example)
+            if text == "/time" then
+                -- Get the region time using an Instrument (assuming you have one)
+                local instrument = GetPartFromPort(2, "Instrument") 
+                local regionTime = instrument:GetReading(3)
+                print("Region Time:", regionTime)
+            elseif text == "/help" then
+                print("Available commands: /time, /help")
+            else
+                print("Invalid command.") 
+            end
+        end
+
+        -- Connect to the TextInputted event
+        keyboard:Connect("TextInputted", onTextInput)
+
+
+
+LIFESENSOR
+LifeSensor senses life in a region. It is used to get players and their positions in the local region. Lifesensors are mostly useful in turrets and player-seeking missiles.
+
+- USAGE
+    - Player Tracking
+        Life Sensors could function as tracking devices to monitor the movement and location of players within the game world. By placing Life Sensors strategically throughout the game environment, players could track the movements of other players, monitor enemy movements, or set up ambushes based on the detected presence of life forms.
+
+    -Security Systems
+        Life Sensors could be integrated into security systems to detect the presence of players in restricted areas. When triggered by movement, Life Sensors could activate alarms, lockdown doors, or dispatch security drones to investigate intrusions, adding a layer of challenge for players attempting to infiltrate secure facilities or evade detection.
+
+    - Turrets
+    Life sensors can be incorporated into turrets to enable them to detect and track the movement of players or other targets within their field of view. By equipping turrets with life sensors, they can automatically scan their surroundings, identify potential threats, and engage hostile entities with precision accuracy.
+        
+        - Target Acquisition
+            Life sensors can detect the presence of enemy players within the turret's detection range, allowing the turret to acquire and lock onto targets for offensive action.
+        
+        - Tracking and Firing 
+            Once a target is detected, the turret can use the data from the life sensor to track the target's movements and adjust its aim accordingly, ensuring accurate firing and effective engagement.
+        
+        - Alert Systems
+            Life sensors can also serve as part of the turret's alert system, triggering warnings or alarms when hostile entities are detected nearby, giving players a chance to react and defend themselves against impending threats.
+
+    Missiles
+    Life sensors can be integrated into missiles to enable them to seek out and pursue specific players with precision guidance and tracking capabilities.
+        
+        - Target Locking:
+            Life sensors can identify and lock onto designated targets, allowing missiles to home in on their intended objectives with increased accuracy and efficiency.
+        
+        - Guidance Systems 
+            By utilizing data from life sensors, missiles can adjust their flight paths and trajectories dynamically to intercept moving targets.
+        
+        - Proximity Detection
+            Life sensors can detect the proximity of enemy entities, triggering the activation and deployment of missiles to engage hostile threats within range.
+
+- METHODS
+    - dictionary LifeSensor:GetReading()
+        Gets the life in the local region. Returns a dictionary where each key is the name of a player, and each value is their position in the world. Has a range of 2000 studs.
+        An example of the format can be seen below:
+            {
+                [string PLAYER_NAME] = Vector3 VECTOR3_POSITION;
+                 ...
+            } 
+        where PLAYER_NAME is the player's name, and VECTOR3_POSITION is the position of the player.
+    
+- EXAMPLES
+    - Life Sensor Example: Tracking Players and Displaying Locations
+
+        -- Get the LifeSensor and Screen parts
+        local lifeSensor = GetPartFromPort(1, "LifeSensor")
+        local screen = GetPartFromPort(2, "Screen")
+
+        -- Function to display player locations on the screen
+        local function displayPlayerLocations(readings)
+            screen:ClearElements() -- Clear previous information
+
+            local yOffset = 0
+            for playerName, position in pairs(readings) do
+                local textLabel = screen:CreateElement("TextLabel", {
+                    Text = playerName .. ": " .. tostring(position),
+                    Position = UDim2.new(0.1, 0, 0.1 + yOffset, 0),
+                    TextSize = 24 
+                })
+                yOffset = yOffset + 0.1 -- Adjust vertical position for each player
+            end
+        end
+
+        -- Continuously track and display player locations
+        while task.wait(1) do -- Update every second
+            local readings = lifeSensor:GetReading()
+            displayPlayerLocations(readings)
+        end        
+
+
+
+LIGHT
+Light emits light when powered.
+
+- USAGE
+    - Danger and Hazard Warning
+        Red lights or flashing sirens can signal danger or hazardous conditions ahead, alerting players to potential threats or imminent dangers. These lights create tension and prompt players to proceed with caution or take evasive action.
+    
+    - Power and Activation Indicators
+        Lights can indicate the status of power sources, machinery, or interactive elements within the game environment. Green lights may signify operational functionality, while red lights indicate malfunctions or deactivated systems.
+
+    - Control Panels or Interfaces
+        Lights can be incorporated into control panels or user interfaces to indicate the status of different systems, such as power, security, or environmental controls.
+
+    - Power Plants or Energy Systems
+        Lights near power plants, generators, or energy systems can indicate power output, system status, or potential malfunctions, allowing players to manage energy resources effectively.
+
+- SETTINGS
+    - number Brightness
+        Sets how bright the light will be.
+
+    - number LightRange
+        The range of the light. Minimum 0, Maximum 60.
+
+- METHODS
+    - void Light:SetColor(Color3 color)
+        Sets the color of the light.
+            Example:
+                local Light = GetPartFromPort(1, "Light") --Gets the Light attached to port 1.
+                while true do --Changes the color of the light from red to green and back every 0.1 seconds.
+                    Light:SetColor(Color3.fromRGB(255, 0, 0)) 
+                    task.wait(0.1)
+                    Light:SetColor(Color3.fromRGB(0, 255, 0))
+                    task.wait(0.1)
+                end     
+
+- EXAMPLES
+    - Light Example: Creating a Flashing Warning Light
+
+        -- Get the Light part
+        local light = GetPartFromPort(1, "Light")
+
+        -- Function to create a flashing effect
+        local function simulateFlashing()
+            while true do
+                light:SetColor(Color3.new(1, 0, 0))   -- Set color to red (or your desired color)
+                light:Configure({ Brightness = 5 })  -- Set brightness to a visible level
+                task.wait(0.5)                     -- Wait for 0.5 seconds
+
+                light:SetColor(Color3.new(0, 0, 0))   -- Set color to black
+                light:Configure({ Brightness = 0 })  -- Set brightness to 0 (invisible) 
+                task.wait(0.5)                     -- Wait for 0.5 seconds
+            end
+        end
+
+        -- Configure initial light settings
+        light:Configure({
+            LightRange = 20       -- Set light range (adjust as needed)
+        })
+
+        -- Start the flashing effect simulation
+        simulateFlashing()
+
+
+
+MICROPHONE
+Microphone allows you to receive player messages.
+
+- USAGE
+    - Voice-Activated Controls
+        Integrate microphones to control in-game devices, vehicles, or equipment using voice commands.
+
+    - Voice-Enabled Crafting
+        Integrate voice commands into crafting mechanics, allowing players to verbally specify item recipes, crafting materials, or customization options, streamlining the crafting process and enhancing player convenience.
+
+    - Voice-Activated Gadgets
+        Create in-game gadgets or devices that respond to specific voice commands, such as voice-controlled drones, robots, or vehicles, adding depth to gameplay mechanics and offering players new ways to interact with the game world.
+
+- METHODS
+    - event "Chatted" (string Player, string Message)
+        Fires when a player sends a chat message.
+            Example:
+                local Microphone = GetPartFromPort(1, "Microphone") --Gets the Microphone attached to port 1
+                Microphone:Connect("Chatted", function(player, message) --Prints what the players say, pretty self-explanatory.
+                    print(player.." says: "..message)
+                end)
+
+- EXAMPLES
+    - Microphone Example: Broadcasting Chat Messages
+
+        -- Get the Microphone and Speaker parts 
+        local microphone = GetPartFromPort(1, "Microphone")
+        local speaker = GetPartFromPort(2, "Speaker") 
+
+        -- Function to handle player chat messages
+        local function onChatted(player, message)
+            print(player .. " said:", message)
+
+            -- Broadcast the message through the speaker
+            speaker:Chat(player .. ": " .. message) 
+        end
+
+        -- Connect to the Chatted event
+        microphone:Connect("Chatted", onChatted)
+
+
+
+MODEM
+Modem can be used to communicate data between other modems. You can also send POST requests to the world wide web.
+
+- USAGE
+    - Inter-Device Communication
+        Modems can facilitate communication between different devices and components within a player's base or spacecraft. For example, they can transmit data between control panels, sensors, and automated systems, allowing for coordinated operations and monitoring.
+
+    - Remote Control
+        Players can use modems to remotely control various in-game assets, such as drones, rovers, or robotic arms, enabling them to perform tasks, gather resources, or explore hazardous environments without direct physical presence.
+
+    - Data Transmission
+        Modems can transmit and receive data packets containing messages, commands, or status updates between different in-game locations or players, enabling communication over long distances or across multiple regions.
+
+- SETTINGS
+    - number NetworkID
+        Modems with the same NetworkID will be able to send data to each other.
+
+- METHODS
+    - void Modem:PostRequest(string domain, string data)
+        Post data on domain
+
+    - string Modem:GetRequest(string domain)
+        Gets the data listed on domain.
+
+    - void Modem:SendMessage(string data, int id)
+        Sends the given data cross region to all modems with the NetworkId id.
+
+    - string response, boolean success Modem:RealPostRequest(string domain, string data, boolean AsyncBool, function transformFunction, table optionalHeaders)   
+        You need to use this to send a real POST request to the world wide web.
+
+- EVENTS
+    - event "MessageSent" (string Data)
+        Fired when the Modem receives a message from another modem with the same NetworkId.
+
+- EXAMPLES
+    - Modem Example: Inter-Base Communication and Data Exchange
+
+        -- Get the Modem parts for Base 1 and Base 2
+        local modemBase1 = GetPartFromPort(1, "Modem")
+        local modemBase2 = GetPartFromPort(2, "Modem")
+
+        -- Set the same NetworkID for both Modems
+        modemBase1:Configure({ NetworkID = 1234 })
+        modemBase2:Configure({ NetworkID = 1234 })
+
+        -- Function to send data from Base 1 to Base 2
+        local function sendDataFromBase1(data)
+            modemBase1:SendMessage(JSONEncode(data), 1234) -- Encode data as JSON before sending
+            print("Base 1 sent data:", data)
+        end
+
+        -- Function to handle incoming data at Base 2
+        local function handleIncomingData(data)
+            local receivedData = JSONDecode(data) -- Decode the received JSON data
+            print("Base 2 received data:", receivedData)
+
+            -- Process the received data (example)
+            if receivedData.type == "resourceRequest" then
+                -- ... handle resource request ...
+            end
+        end
+
+        -- Connect to the "MessageSent" event on Base 2's Modem
+        modemBase2:Connect("MessageSent", handleIncomingData)
+
+        -- Example usage: Send a resource request from Base 2 to Base 1
+        sendDataFromBase1({
+            type = "resourceRequest",
+            resource = "Iron",
+            amount = 100
+        })
+
+
+
+REACTOR
+Generates Steam using Water and Uranium. Up to 4 units of Uranium can be inserted into the reactor as fuel. If the temperature is above 400, it will begin to turn Water into Steam (rate dependent on temperature). If the temperature exceeds 1200 F, a meltdown will occur. The Reactor fuel status can be acquired through the :GetFuel() method with a microcontroller. Polysilicon is used to control a reactor, and fuel must be ejected manually: Activation lowers the control rods, decreasing reaction rate. Deactivation raises the control rods, allowing fuel to react. FlipFlop will eject fuel or waste from the fuel rod with the least fuel.
+
+- USAGE
+    - Power Generation
+        The Reactor generates electrical power to meet the energy demands of various systems, devices, and structures within the player's base or spacecraft. It converts uranium and water into usable energy.
+
+    - Propulsion
+        In spacecraft, the Reactor provides the necessary power to drive propulsion systems, such as engines or thrusters, enabling movement, maneuvering, and travel within the game world. It allows players to navigate through space, explore new regions, and engage in interstellar travel.
+
+    - Weapon Systems
+        Reactors can also power offensive and defensive weapon systems, such as laser cannons, energy guns, or energy shields, providing players with firepower to defend against threats or engage in combat with hostile entities, pirates, or rival factions.
+    
+    - Resource Processing
+        Reactors can be used to power resource processing and refining facilities, converting raw materials or harvested resources into valuable commodities, fuel, or components for construction, manufacturing, or trade.
+    
+    - Emergency Backup
+        Reactors may serve as emergency backup power sources, activating automatically in the event of a primary power failure or system malfunction to maintain critical functions, support life support systems, and prevent catastrophic failures.
+
+- SETTINGS
+    - boolean Alarm
+        Determines whether the reactor alarm system is enabled for when the reactor is near meltdown temperature
+
+- METHODS
+    - array Reactor:GetFuel()
+        Returns an array with four numeric values each representative of their fuel rod. The order is strict and goes from the first to the fourth fuel rod.
+   
+    - number Reactor:GetTemp()
+        Returns a numeric value representing the current temperature of the Reactor in Fahrenheit.
+
+- EXAMPLES
+    - Reactor Example: Monitoring Temperature and Fuel Levels
+
+        -- Get the Reactor and Screen parts
+        local reactor = GetPartFromPort(1, "Reactor")
+        local screen = GetPartFromPort(2, "Screen")
+
+        -- Function to display reactor status on the screen
+        local function displayReactorStatus()
+            local temperature = reactor:GetTemp()
+            local fuelLevels = reactor:GetFuel()
+
+            screen:ClearElements()  -- Clear previous information from the screen
+
+            -- Create text elements for temperature and fuel levels (centered and white text)
+            screen:CreateElement("TextLabel", {
+                Text = "Temperature: " .. temperature .. " F",
+                Position = UDim2.new(0.5, 0, 0.2, 0), -- Centered position
+                AnchorPoint = Vector2.new(0.5, 0.5), -- Anchor to center
+                TextSize = 24,
+                TextColor3 = Color3.new(1, 1, 1) -- White text color
+            })
+
+            screen:CreateElement("TextLabel", {
+                Text = "Fuel Levels: " .. table.concat(fuelLevels, ", "),
+                Position = UDim2.new(0.5, 0, 0.3, 0), -- Centered position
+                AnchorPoint = Vector2.new(0.5, 0.5), -- Anchor to center 
+                TextSize = 24,
+                TextColor3 = Color3.new(1, 1, 1) -- White text color
+            })
+
+            -- Check for low fuel and display a warning on the screen (adjust thresholds as needed)
+            if fuelLevels[1] < 0.2 then -- Check the first fuel rod 
+                screen:CreateElement("TextLabel", {
+                    Text = "WARNING: Low fuel in Reactor!",
+                    Position = UDim2.new(0.5, 0, 0.4, 0), -- Centered position
+                    AnchorPoint = Vector2.new(0.5, 0.5), -- Anchor to center
+                    TextSize = 24,
+                    TextColor3 = Color3.new(1, 0, 0) -- Red text color for warning
+                })
+            end 
+        end
+
+        -- Initial status check
+        displayReactorStatus()
+
+        -- Continuous monitoring (example)
+        while task.wait(2) do
+            displayReactorStatus() -- Get updated fuelLevels within the function
+        end
+
+
+
+SCREEN
+Screen can display GUI content on its surface.
+
+- USAGE
+    - Information Display
+        Screens can be used to display important information, such as resource levels, power status, environmental conditions, mission objectives, or incoming communications. Players can customize the content and layout of the display to suit their needs and preferences.
+
+    - Navigation and Mapping
+        Screens can function as interactive maps or navigation displays, providing players with real-time feedback on their location, nearby points of interest, or planned routes. They can help players navigate complex environments, avoid hazards, or locate valuable resources.
+
+    - Monitoring and Surveillance
+        Screens can be linked to surveillance cameras or sensor arrays to provide visual feedback on security cameras, perimeter defenses, or internal monitoring systems. Players can keep an eye on their base or spacecraft, detect intruders, or monitor critical areas remotely.
+
+    - Advertisement and Branding
+        Screens can be used for advertising purposes, displaying promotional messages, product announcements, or branding materials related to in-game companies, factions, or sponsors. Players can monetize screen space or generate revenue through sponsorship deals or marketing campaigns.
+
+    - Creative Expression
+        Screens can serve as canvases for artistic expression, allowing players to create and showcase digital art, animations, or multimedia installations. Players can express their creativity, share their work with others, or participate in community-driven art projects and competitions.
+
+    - Targeting and Weapon Systems
+        Integrate targeting reticles, weapon status indicators, and tactical overlays on the Screen part to assist the pilot in combat scenarios. This includes displaying target tracking data, weapon firing solutions, threat assessments, and damage reports to enhance situational awareness and combat effectiveness during engagements with hostile entities. 
+
+- SETTINGS
+    - number VideoID
+        The ID of the camera feed being to be viewed, or 0 for none. Minimum 0, Maximum 10000000000.
+
+- METHODS
+    - Vector2 Screen:GetDimensions()
+        Gets the Screen's width and height as a Vector2.
+
+    - void Screen:ClearElements(string className)
+        Clears the elements on the screen. Optionally a className can be passed to select only a specific type of object, don't pass a className if your putting this method at the start of the code.
+
+    - ScreenObject Screen:CreateElement(string className, dictionary properties)
+        Creates a className element and returns it wrapped as a ScreenObject.
+            Example:
+                    local screen = GetPartFromPort(1, "Screen")
+                    local hourLabel = screen:CreateElement("TextLabel", {
+                        Size = UDim2.new(0.3, 0, 0.5, 0), -- Set size for hour label
+                        Position = UDim2.new(0.1, 0, 0.2, 0), -- Set position for hour label
+                        Text = hourText, -- Set text to hour component
+                        TextColor3 = Color3.new(1, 1, 1), -- Set text color to white
+                        BackgroundTransparency = 1, -- Make background transparent
+                        Font = Enum.Font.SourceSans, -- Set font to SourceSans
+                        TextSize = 36, -- Set text size
+                        TextStrokeTransparency = 0, -- Show text stroke
+                        TextStrokeColor3 = Color3.new(0, 0, 0) -- Set text stroke color to black
+                })
+
+- EXAMPLES
+    - Screen Example: Creating a Dynamic Information Display
+        
+        -- Get the Screen and Instrument parts (for example data)
+        local screen = GetPartFromPort(1, "Screen")
+        local instrument = GetPartFromPort(2, "Instrument")
+
+        -- Function to update and display information
+        local function updateDisplay()
+            screen:ClearElements() -- Clear previous elements
+
+            -- Get some data (example: using an Instrument)
+            local regionTime = instrument:GetReading(3)
+            local temperature = instrument:GetReading(2)
+
+            -- Create TextLabels to display the information (centered)
+            local timeLabel = screen:CreateElement("TextLabel", {
+                Text = "Region Time: " .. regionTime,
+                Position = UDim2.new(0.5, 0, 0.2, 0), -- Centered position
+                AnchorPoint = Vector2.new(0.5, 0.5), -- Anchor to center
+                TextSize = 24
+            })
+
+            local tempLabel = screen:CreateElement("TextLabel", {
+                Text = "Temperature: " .. temperature .. " F",
+                Position = UDim2.new(0.5, 0, 0.3, 0), -- Centered position
+                AnchorPoint = Vector2.new(0.5, 0.5), -- Anchor to center 
+                TextSize = 24
+            })
+
+            -- Example: Change text color based on temperature
+            if temperature > 80 then
+                tempLabel:ChangeProperties({ TextColor3 = Color3.new(1, 0, 0) }) -- Red for hot
+            else
+                tempLabel:ChangeProperties({ TextColor3 = Color3.new(0, 1, 0) }) -- Green for normal
+            end
+        end
+
+        -- Configure the Instrument to display Temperature
+        instrument:Configure({ Type = "Temperature" })
+
+        -- Initial display update
+        updateDisplay()
+
+        -- Continuous updates (example)
+        while task.wait(5) do 
+            updateDisplay()
+        end 
+
+
+
+SCREENOBJECT
+An object created on a Screen. You can edit the properties as if it was a normal table.
+
+- METHODS
+    - void ScreenObject:ChangeProperties(dictionary properties)
+        Sets the given properties for the ScreenObject.
+
+    - void ScreenObject:AddChild(ScreenObject child)
+        Parents the given ScreenObject to this one.
+
+    - ScreenObject ScreenObject:Clone()
+        Create a copy of the ScreenObject and all its children, ignoring ScreenObjects that are not Archivable.
+
+    - void ScreenObject:Destroy()
+        Destroys this ScreenObject and all its children.
+
+
+
+SERVO
+Servos are motors, but they only rotate to an angle that is defined by manual configuration or microcontrollers.
+
+- USAGES
+    - Mechanical Actuation
+        Servos can act as actuators for mechanical systems, providing precise control over the movement of various components. For example, you could use them to control the opening and closing of airlocks or hatches, adjust the pitch and yaw of thrusters.
+
+    - Articulation and Manipulation
+        Servos enable articulation and manipulation of objects in robotic systems or mechanical assemblies. You could use them to control the movement of robotic arms or grippers for handling cargo, maneuvering tools for maintenance tasks, or adjusting movable platforms for access or positioning.
+
+    - Mechanical Control
+        Servo parts can be used to control the orientation of mechanical systems, such as robotic arms, cranes, or industrial machinery. By adjusting the orientation of components or moving parts, Servo parts enable precise control over mechanical operations.
+
+- SETTINGS
+    - number ServoSpeed
+        Determines the speed at which the servo is driven. Min 0, Max 20.
+
+    - number AngleStep
+        Determines the change in angle when a pulse is received by Polysilicon. Min -180, Max 180
+
+    - Responsiveness
+        How responsive the servo is to PolySilicons. Min 0, Max 90
+
+- METHODS
+    - void Servo:SetAngle(number Angle)
+        Sets the angle of a Servo.
+
+- EXAMPLES
+    - Servo Example: Rotating The Servo With Random Angles
+
+        -- Get the Servo part
+        local servo = GetPartFromPort(1, "Servo")
+
+        -- Function to continuously rotate the servo with random angles
+        local function spinServoRandomly()
+            while true do
+                local randomAngle = math.random() * 360 -- Generate a random angle between 0 and 360 degrees
+                servo:SetAngle(randomAngle)
+                task.wait() -- Adjust wait time to control speed
+            end
+        end
+
+        -- Start the random spinning
+        spinServoRandomly()
+
+
+
+SIGN
+Signs can be used to display text.
+
+- USAGES
+    - Informational Displays
+        Use the Sign part to convey important information, instructions, or warnings to visitors or crew members. You can display safety protocols, emergency procedures, or navigation guidelines to ensure everyone is aware of essential protocols.
+
+    - Identification and Labeling
+        Label storage containers, equipment, or compartments using Sign parts to facilitate organization and inventory management. Clearly marking items or areas can streamline operations and prevent confusion or misplaced items.
+
+    - Customization and Personalization: Add personality to your base or spacecraft by using Sign parts to display custom messages, slogans, or logos.
+
+    - Operational Status Indicators
+        Use Sign parts to display real-time information about the status of various systems or processes within your base or spacecraft. This could include indicating power levels, environmental conditions, or equipment statuses to keep occupants informed.
+        
+- SETTINGS
+    - string SignText
+        Text that'll be displayed on the sign.
+    - Color3 TextColor
+        Color of the text.
+    - string TextFont
+        Font of the text.
+
+- EXAMPLES
+    Sign Example: Displaying a Welcome Message and Player Count
+
+        -- Get the Sign and LifeSensor parts
+        local sign = GetPartFromPort(1, "Sign")
+        local lifeSensor = GetPartFromPort(2, "LifeSensor")
+
+        -- Function to update the sign's text
+        local function updateSignText()
+            local playerReadings = lifeSensor:GetReading() -- Get player readings
+            local playerCount = 0
+            for _ in pairs(playerReadings) do  -- Count the number of players (keys in the dictionary)
+                playerCount = playerCount + 1 
+            end
+
+            -- Set the sign text with a welcome message and player count
+            sign:Configure({
+                SignText = "Welcome to the Base!\nCurrent Players: " .. playerCount
+            })
+        end
+
+        -- Initial update
+        updateSignText()
+
+        -- Continuously update the sign (example)
+        while task.wait(5) do 
+            updateSignText()
+        end 
+
+
+
+SPEAKER
+Speaker can play custom sounds from the Roblox Audio library. It can also mimic a text bubble.
+
+- USAGES
+    - Announcements and Alerts
+        Utilize the Speaker part to broadcast announcements, alerts, or emergency notifications to occupants or crew members. This can include important announcements, safety alerts, or procedural instructions to ensure everyone is informed and aware of critical information.
+
+    - Intercom System
+        Implement an intercom system using Speaker parts to facilitate communication between different areas or compartments within your base or spacecraft. This allows individuals to communicate with each other easily, fostering collaboration and coordination.
+
+- SETTINGS
+    - number Audio
+        ID of the Audio that'll be played.
+    
+    - number Pitch
+        Pitch of the Audio that'll be played. Min 0, Max 3.
+
+- METHODS
+    - void Speaker:PlaySound(int soundId)
+        Plays a sound with the given soundId.
+
+    - void Speaker:ClearSounds()
+        Stops and clears all sounds the speaker is currently playing.
+
+    - void Speaker:Chat(string message)
+        Displays the message in a chat bubble just like if a player said it.
+
+- EXAMPLES
+    - Speaker Example: Playing Sounds and Broadcasting Messages
+       
+        -- Get the Speaker and Button parts
+        local speaker = GetPartFromPort(1, "Speaker")
+        local button = GetPartFromPort(2, "Button")
+
+        -- Function to play a sound
+        local function playSound()
+            speaker:PlaySound(123456789) -- Replace with the ID of your desired sound
+        end
+
+        -- Function to broadcast a message
+        local function broadcastMessage()
+            speaker:Chat("Attention! This is an important announcement.") 
+        end
+
+        -- Connect button events to the functions
+        button:Connect("OnClick", playSound)  -- Play sound when the button is clicked
+        button:Connect("OnClick", broadcastMessage) -- Broadcast message when triggered (e.g., by key press)
+
+
+
+STARMAP
+StarMap displays information about solar systems and planet bodies within those systems.
+
+- USAGES
+    - Celestial Navigation
+        The StarMap can provide information about solar systems and celestial bodies within those systems. It helps players navigate through space by identifying nearby stars, planets, moons, and other astronomical objects.
+
+    - Resource Scanning
+        StarMaps can be used to scan for valuable resources such as minerals, ores, or rare elements in different solar systems. Players can use this information to plan mining expeditions or resource gathering missions.
+
+- METHODS
+    - iterator StarMap:GetBodies()
+        Returns an iterator which goes over the coordinates of every stellar body in the current system. Coordinates are in Coordinate String format.
+
+    - iterator StarMap:GetSystems()
+        Returns an iterator which goes over the coordinates of every solar system that the StarMap can see. Visible range is the same as the StarMap, 20x20 centered on your current location. Coordinates are in Coordinate String format.    
+
+
+
+COORDINATESTRINGS
+    Parts like StarMap, Telescope, and HyperDrive send and receive universe coordinates as strings. The standard format for them is as follows:
+    <Universe X>, <Universe Y>, <System X>, <System Y>, <OnPlanet>
+    Universe X and Y are integers between -100 and 100 describing where the position is on the universe grid. System X and Y are integers between -10 and 10 describing where it is within the system on that grid space. OnPlanet is a boolean that specifies whether the position is inside the planet in that system grid space or outside of it. Since only teleporters can teleport inside planets, this value is ignored as an input for parts like the HyperDrive. If an OnPlanet boolean is not provided, it will default to false.
+    For example, here is how you would represent the center of the universe:
+    local coords = "0, 0, 0, 0, false"
+    When you receive a coordinate string as an output, it will always follow the above format. When you provide one, the format does not need to be followed - you can put anything before, after, or between each value, as long as there are four coordinate positions and optionally the OnPlanet boolean. For the sake of consistency, it is better to write them in the standard way.
+
+
+
+TELESCOPE
+Telescope can be used to get information about celestial bodies.
+
+- USAGES
+    - Resource Detection  
+        Players can use the Telescope to detect and identify resources on planetary surfaces, such as ores, minerals, and valuable materials.
+
+    - Environmental Monitoring
+        The Telescope can be used to monitor environmental conditions on planets, such as temperature, gravity, and atmosphere. Players can gather data to assess the habitability of planets or identify potential hazards and challenges.
+
+- SETTINGS
+    - CoordinateStrings ViewCoordinates
+        Lets you view a specific coordinates.
+
+- METHODS
+    - CoordinateInfo Telescope:GetCoordinate()
+        Gets the RegionInfo of the telescope's configured coordinates. Coordinates are provided in Coordinate String format.
+
+    - void Telescope:WhenRegionLoads(callback)
+        Calls the function when a region loads into the telescope.
+
+- EXAMPLES
+    - Telescope Example: Viewing a Specific Location and Displaying Information
+
+        -- Get the Telescope and Screen parts
+        local telescope = GetPartFromPort(1, "Telescope")
+        local screen = GetPartFromPort(2, "Screen")
+
+        -- Set the coordinates to view (replace with your desired coordinates)
+        local targetCoords = "0, 0, 0, 0, false" -- Example: center of the universe
+
+        telescope:Configure({ ViewCoordinates = targetCoords })
+
+        -- Function to display information about the viewed location
+        local function displayLocationInfo()
+            local regionInfo = telescope:GetCoordinate() 
+
+            screen:ClearElements() -- Clear previous information
+
+            -- Create TextLabels to display region information
+            screen:CreateElement("TextLabel", {
+                Text = "Name: " .. regionInfo.Name,
+                Position = UDim2.new(0.1, 0, 0.2, 0),
+                TextSize = 24 
+            })
+
+            screen:CreateElement("TextLabel", {
+                Text = "Type: " .. regionInfo.Type .. " (" .. regionInfo.SubType .. ")",
+                Position = UDim2.new(0.1, 0, 0.3, 0),
+                TextSize = 24
+            })
+
+            -- ... add more TextLabels for other information as needed ...
+        end
+
+        -- Function to handle region loading
+        local function onRegionLoad()
+            print("Region loaded into telescope view!")
+            displayLocationInfo() 
+        end
+
+        -- Connect to the "WhenRegionLoads" event
+        telescope:WhenRegionLoads(onRegionLoad)
+
+
+
+TOUCHSCREEN
+A variant of Screen which can handle mouse input and track player cursors. Inherits Screen.
+
+- USAGES
+    - Interactive Interfaces
+        TouchScreen parts can be used to create interactive user interfaces within the game world. Players can use their mouse to interact with buttons, sliders, text inputs, and other UI elements displayed on the TouchScreen, enabling them to navigate menus, control settings, and interact with in-game systems.
+
+    - Player Feedback
+        TouchScreen parts can provide visual feedback to players based on their mouse interactions. For example, hovering over a button may cause it to change color or display a tooltip, indicating that it can be clicked. Clicking on a button may trigger an action or initiate a process within the game.
+
+    - Cursor Tracking
+        TouchScreen parts track the movement of player cursors, allowing developers to implement cursor-based interactions and gameplay mechanics. Developers can use cursor tracking to create mini-games, puzzles, or challenges that require players to interact with specific on-screen targets or elements.
+
+- SETTINGS
+    - number VideoID
+        The ID of the camera feed being to be viewed, or 0 for none. Minimum 0, Maximum 10000000000.
+
+- METHODS
+    - Cursor TouchScreen:GetCursor()
+        Returns the active Cursor on the TouchScreen.
+
+    - Cursor TouchScreen:GetCursors()
+        Returns all Cursors on the TouchScreen.
+
+- EVENTS
+    - event "CursorMoved" (Cursor cursor)
+        Fired when a player moves their cursor on the screen.
+
+    - event "CursorPressed" (Cursor cursor)
+        Fired when a player left clicks on the screen.
+
+    - event "CursorReleased" (Cursor cursor)
+        Fired when a player releases the left click button on the screen.
+
+- EXAMPLES
+    - TouchScreen Example: Interactive Drawing Canvas
+
+        -- Get the TouchScreen part
+        local touchscreen = GetPartFromPort(1, "TouchScreen")
+
+        touchscreen:ClearElements()
+
+        -- Create a TextLabel to display the active cursor's player name
+        local cursorNameLabel = touchscreen:CreateElement("TextLabel", {
+            TextSize = 18,
+            TextColor3 = Color3.new(1, 1, 1) -- White text color
+        })
+
+        -- Function to handle cursor movement and update the name label's position
+        local function onCursorMoved(cursor)
+            if cursor.Pressed then
+                -- Create a small Frame at the cursor position (acts as a "brushstroke") without borders
+                touchscreen:CreateElement("Frame", {
+                    Size = UDim2.new(0.02, 0, 0.02, 0), 
+                    Position = UDim2.new(0, cursor.X, 0, cursor.Y),
+                    AnchorPoint = Vector2.new(0.5, 0.5),
+                    BackgroundColor3 = Color3.new(1, 0, 0),
+                    BorderSizePixel = 0 
+                })
+            end
+
+            -- Update the name label's position and text
+            cursorNameLabel:ChangeProperties({
+                Position = UDim2.new(0, cursor.X, 0, cursor.Y),
+                AnchorPoint = Vector2.new(0.5, 0.5), 
+                Text = cursor.Player
+            })
+        end
+
+        -- Connect to the CursorMoved event
+        touchscreen:Connect("CursorMoved", onCursorMoved)
+
+
+
+CURSOR
+A Cursor object returned by TouchScreen:GetCursor() and TouchScreen:GetCursors()
+
+- PROPERTIES
+    - int Cursor.X
+        The X position of the cursor in pixels as an integer.
+
+    - int Cursor.Y
+        The Y position of the cursor in pixels as an integer.
+
+    - string Cursor.Player
+        The name of the player the cursor belongs to.
+
+    - boolean Cursor.Pressed
+        Whether or not the player's left mouse button is held down.
+
+
+
+TOUCHSENSOR
+TouchSensor detects touch interactions from other parts.
+
+- USAGES
+    - Collision Detection
+        TouchSensor parts can be used for collision detection between objects in the game world. When two objects come into contact with each other, the TouchSensor attached to one of the objects detects the touch event.
+
+- EVENTS
+    - event "Touched"
+        Fires when the touch sensor is touched by something. The object or the touch sensor itself must be unanchored.
+
+- EXAMPLES
+    - TouchSensor Example: Detecting Collisions and Triggering Actions
+
+        -- Get the TouchSensor and Speaker parts
+        local touchSensor = GetPartFromPort(1, "TouchSensor")
+        local speaker = GetPartFromPort(2, "Speaker")
+
+        -- Function to handle touch events
+        local function onTouched(otherPart)
+            print("Touched by:", otherPart.Name)
+            speaker:PlaySound(123456789) -- Replace with the ID of your desired sound
+        end
+
+        -- Connect to the Touched event
+        touchSensor:Connect("Touched", onTouched)
+
+
+REGIONINFO
+Returns information about a celestial object.
+
+- PROPERTIES
+    - string Name
+        Name of the celestial object.
+
+    - string Type
+        Either "Planet" or "Star".
+
+    - string SubType
+        The planet type or star type.
+
+    - Color3 Color
+        Color of the celestial object.
+
+    - boolean TidallyLocked
+        Whether or not the planet has a day-night cycle.
+
+    - table Resources
+        The names of the resources the planet has as strings.
+
+    - number Gravity
+        Gravity of the planet.
+
+    - number Temperature
+        The atmospheric temperature of the planet in Fahrenheit.
+
+    - number BeaconCount
+        Number of active beacons in the region.
+
+    - boolean HasRings
+        Whether or not the planet has rings.
+
+
+
+EVENTCONNECTION
+A class returned by an event connection.
+
+- METHODS
+    - void EventConnection:Unbind()
+        Removes the event connection.
+
+
+
+GYRO
+Stabilizes vehicles and structures by pointing upwards. Useful for mechs or orientating structures to the correct rotation. The gyro can also be configured to seek objects and players. When powered, the gyro will follow its seek commands that can be configured using hammer. The gyro has commands that allow it to find and seek objects and players. An example of gyro's seek configuration includes Player1 Player2 which will seek and aim towards the nearest player. Putting Radar at the beginning of the seek configuration will make it target parts instead. For example, Radar Gold Copper will find the nearest Gold or Copper deposit. Putting AllExcept will make the seeker target everything except the given list, basically inverting it. For example, AllExcept Player1 Player2 will target Player3 or Player 4 but not Player1 . The commands Min and Max set the minimum or maximum distance the seeker will target. For example, Min20 Max500 will make the seeker only target objects within 500 studs and more than 20 studs away. TriggerWhenSeeked will trigger all connected parts every second when the Seek configurable is satisfied TrigMin and TrigMax work the same as Min and Max but it's for the trigger signal, trigger signal will only be sent if the above property is true. Putting Sun as part of the list will make the seeker automatically target the main stellar body in the system. Gyros also have a property called MaxTorque. This allows you to control the max force on the gyro to stabilize it.
+
+- USAGES
+    - Vehicle Stabilization
+        Gyro parts are often used to stabilize vehicles such as spacecraft, aircraft, cars, or boats. By controlling the orientation of the vehicle, the Gyro helps maintain stability and balance, reducing unwanted movement or rotation.
+
+    - Seeking and Tracking
+        Gyro parts can be configured to seek and track objects or players within the game world. By setting seek commands and parameters, Gyro parts can automatically orient themselves toward designated targets, enabling automated tracking, surveillance, or targeting systems for defense, navigation, or combat purposes.
+
+    - Targeting Systems
+        Gyro parts are integral components of targeting systems for weapons, turrets, or defensive emplacements. By pointing toward designated targets, Gyro parts facilitate accurate aiming and firing of weapons, enabling players to engage enemies or threats with precision and efficiency in combat scenarios.
+
+    - Automated Guidance: Gyro parts can provide automated guidance and navigation for vehicles, drones, or autonomous agents within the game world. By controlling the orientation and movement of these entities, Gyro parts enable autonomous navigation. 
+
+- SETTINGS
+    - string Seek
+        The Seek commands go into here.
+    
+    - boolean DisableWhenUnpowered
+        Determines whether this gyro should be disabled while it does not have power.
+
+    - boolean TriggerWhenSeeked
+        Determines whether to send out a trigger signal when the gyro detects something to seek as determined by the Seek configurable.
+
+- METHODS
+    - void Gyro:PointAt(Vector3 position)
+        Points the Gyro at the given Vector3 position.        
+
+- EXAMPLES
+    - Target Closest Player Example:
+
+        -- Get the Gyro and LifeSensor parts
+        local gyro = GetPartFromPort(1, "Gyro")
+        local lifeSensor = GetPartFromPort(2, "LifeSensor")
+
+
+
+        -- Function to find the closest target from LifeSensor readings
+        local function findClosestTarget(readings)
+            local closestTarget, closestDistance = nil, math.huge  -- Initialize with a large distance
+
+            for targetName, targetPosition in pairs(readings) do
+                local distance = (gyro.Position - targetPosition).Magnitude
+                if distance < closestDistance then
+                    closestTarget, closestDistance = targetName, distance
+                end
+            end
+
+            return closestTarget, closestDistance
+        end
+
+        -- Main loop to continuously track and aim at the closest target
+        while true do
+            local readings = lifeSensor:GetReading()
+            local target, distance = findClosestTarget(readings)
+
+            if target then
+                gyro:PointAt(readings[target])  -- Aim the gyro at the closest target
+                -- (Optional) Add logic to trigger the turret based on distance or other conditions
+            end
+
+            task.wait(0.1)  -- Adjust the wait time to control update rate
+        end
+
+
+
+THRUSTER
+Thruster creates forward propulsion depending on its size when powered. The size of the thruster will determine the max thrust speed it can have, with a larger thruster being capable of higher speeds. Max size it can be is 10x10x10, it goes 500 studs per second at that size.
+
+- USAGES
+    - Spacecraft Propulsion
+        Thrusters can be used to provide propulsion for spacecraft, allowing them to maneuver in space. By adjusting the thrust force and direction, players can control the movement of their spacecraft, including acceleration, deceleration, and changes in direction.
+    
+    - Aircraft Flight Control
+        In addition to spacecraft, thrusters can also be used to control the flight of aircraft within the game. By mounting thrusters on aircraft wings or fuselage, players can achieve lift, thrust, and control over the aircraft's movement in the air.
+
+    - Land Vehicle Acceleration
+        Thrusters can also be mounted on land vehicles to provide additional acceleration or boost capabilities. By activating thrusters strategically, players can enhance the speed and agility of their vehicles, especially in situations requiring quick maneuvers or escapes.
+
+    - Combat Maneuvers
+        Thrusters can play a crucial role in combat scenarios, allowing players to perform evasive maneuvers, dodge enemy fire, or engage in aerial dogfights. By combining thruster control with other weaponry and defensive systems, players can gain a tactical advantage in combat situations.
+
+    - Underwater Propulsion
+        In underwater environments, thrusters can provide propulsion for submarines, underwater vehicles, or aquatic creatures. By directing thrust in various directions, players can navigate through water environments, control depth, and achieve precise movement underwater.
+
+    - Missile Launchers
+        Thrusters can be attached to missiles to provide propulsion for launching them towards targets. By controlling the Thrusters' activation and direction, players can create missile launchers capable of delivering explosive payloads to enemy structures, vehicles, or other players.
+
+    - Ramming Attacks
+        Thrusters can be strategically placed on vehicles or drones to execute ramming attacks. By activating Thrusters at high speed, players can propel their creations forward with enough force to collide with and damage enemy targets, such as enemy vehicles, bases, or defensive structures.
+
+    - Aerial Assaults
+        Flying vehicles equipped with Thrusters can perform aerial assaults by flying over enemy territory and raining down projectiles or explosives on targets below. Thrusters provide the necessary lift and maneuverability for aerial combat maneuvers, allowing players to engage enemies from above with precision and agility.
+    
+    - Bombing Runs
+        Aircraft armed with bombs or explosives can use Thrusters to execute bombing runs on enemy positions. Players can drop bombs from overhead while using Thrusters to maintain altitude and evade enemy defenses, delivering devastating attacks on ground targets with pinpoint accuracy.
+
+    - Flanking Maneuvers
+        Vehicles equipped with Thrusters can perform flanking maneuvers to outmaneuver and surprise enemy forces. By utilizing Thrusters for rapid acceleration and directional changes, players can quickly reposition their vehicles to attack enemy positions from unexpected angles, catching opponents off guard and gaining a tactical advantage.
+
+- SETTINGS
+    - int Propulsion
+        Propulsion setting of the Thruster can be configured from -100 (Full Backwards), to 100 (Full forwards).
+
+- EXAMPLES
+    - Script Changing Thruster's Speed
+
+        -- Get the Thruster part
+        local thruster = GetPartFromPort(1, "Thruster")
+
+        -- Configure the Thruster to provide forward propulsion
+        thruster:Configure({
+            Propulsion = 100 -- Full forwards
+        })
+
+
+
+IONROCKET
+Ion Rocket can go up to 100 studs per second at max. It has a fixed size.
+
+- USAGES
+    - Spacecraft Propulsion
+        Ion Rockets can be used to provide propulsion for spacecraft, allowing them to maneuver in space. By adjusting the thrust force and direction, players can control the movement of their spacecraft, including acceleration, deceleration, and changes in direction.
+    
+    - Aircraft Flight Control
+        In addition to spacecraft, Ion Rockets can also be used to control the flight of aircraft within the game. By mounting Ion Rockets on aircraft wings or fuselage, players can achieve lift, thrust, and control over the aircraft's movement in the air.
+
+    - Land Vehicle Acceleration
+        Ion Rockets can also be mounted on land vehicles to provide additional acceleration or boost capabilities. By activating Ion Rockets strategically, players can enhance the speed and agility of their vehicles, especially in situations requiring quick maneuvers or escapes.
+
+    - Combat Maneuvers
+        Ion Rockets can play a crucial role in combat scenarios, allowing players to perform evasive maneuvers, dodge enemy fire, or engage in aerial dogfights. By combining Ion Rocket control with other weaponry and defensive systems, players can gain a tactical advantage in combat situations.
+
+    - Underwater Propulsion
+        In underwater environments, Ion Rockets can provide propulsion for submarines, underwater vehicles. By directing thrust in various directions, players can navigate through water environments, control depth, and achieve precise movement underwater.
+
+    - Missile Launchers
+        Ion Rockets can be attached to missiles to provide propulsion for launching them towards targets. By controlling the Ion Rocket's activation and direction, players can create missile launchers capable of delivering explosive payloads to enemy structures, vehicles, or other players.
+
+    - Aerial Assaults
+        Flying vehicles equipped with Ion Rockets can perform aerial assaults by flying over enemy territory and raining down projectiles or explosives on targets below. Ion Rockets provide the necessary lift and maneuverability for aerial combat maneuvers, allowing players to engage enemies from above with precision and agility.
+    
+    - Bombing Runs
+        Aircraft armed with bombs or explosives can use Ion Rockets to execute bombing runs on enemy positions. Players can drop bombs from overhead while using Ion Rockets to maintain altitude and evade enemy defenses, delivering devastating attacks on ground targets with pinpoint accuracy.
+
+- SETTINGS
+    - int Propulsion
+        Propulsion setting of the Ion Rocket can be configured from -100 (Full Backwards), to 100 (Full forwards).
+
+- EXAMPLES
+    - Script Changing Ion Rockets's Speed
+    
+        -- Get the Thruster part
+        local IonRocket = GetPartFromPort(1, "IonRocket")
+
+        -- Configure the Thruster to provide forward propulsion
+        IonRocket:Configure({
+            Propulsion = 100 -- Full forwards
+        })
+
+
+
+SWITCH
+Act as a wire when active, but when inactive acts as a normal object.
+
+- USAGES
+    - Power Control
+        You can use the Switch to control the power flow to different parts of a base or vehicle. When the Switch is active, it allows power to flow, enabling certain functionalities or systems. When inactive, it cuts off the power supply, disabling those functionalities.
+
+    - Remote Control Systems
+        Incorporate switches into remote control systems for vehicles or drones. This allows you to remotely activate or deactivate certain functionalities of your vehicles or drones as needed.
+
+    - Security Systems
+        Incorporate switches into your security systems to activate/deactivate alarms, turrets, or traps. You can quickly toggle security measures on or off based on the situation.
+
+    - Emergency Shutdowns
+        Install switches as emergency shutdown mechanisms for critical systems or machinery. In the event of an emergency, you can quickly cut off power to prevent further damage or hazards.
+
+- SETTINGS
+    - boolean SwitchValue
+        Turns on the Switch if true, turns it off if false.
+
+- EXAMPLES
+    - Turning On A Switch.
+
+        -- Get the switch part
+        local switch = GetPartFromPort(1, "Switch")
+
+        -- Set the switch's SwitchValue to true (turning it on)
+        switch:Configure({ SwitchValue = true }) 
+
+
+
+POLYSILICON
+Polysilicon is used to send special signals to certain objects that don't get affected by the signals the Button part sends.
+
+- USAGES
+    - Toggling a Switch
+        Use Polysilicon to toggle the state of a Switch without directly configuring it. By connecting a Polysilicon to a Switch, you can send special signals to activate or deactivate the Switch based on specific conditions or events. For example, you can set up a Polysilicon to activate the Switch when a player enters a certain area or when a sensor detects movement. The PolysiliconMode can be set to "activate" or "deactivate" depending on whether you want to turn the Switch on or off, and the Frequency setting can control how many times the signal is sent.
+
+- SETTINGS
+    - string PolysiliconMode
+        Changes whether if Polysilicon activates, deactivates or FlipFlop.
+
+    - int Frequency
+        Dictates how many times the polysilicon will repeat a trigger.
+
+- EXAMPLES
+    Toggling a Switch with the use of Polysilicon
+
+        -- Get the Polysilicon part
+        local Polysilicon = GetPartFromPort(2, "Polysilicon")
+
+        -- Configure the Polysilicon to toggle the Switch when activated
+        Polysilicon:Configure({ PolysiliconMode = "FlipFlop", Frequency = 1 })
+
+        -- Triggers the Port the Polysilicon is attached to
+        TriggerPort(2)
+
+
+
+ANTENNA
+Antenna is a wireless transmitter that can transmit electricity from wires and trigger signals from trigger wires and buttons. Cannot transmit data, only trigger signals and power.
+
+- USAGES
+    - Remote Control Systems
+        Antennas can be used to transmit control signals wirelessly to remotely control vehicles, robots, or other devices. For example, you can use an Antenna to send commands to a drone to control its flight or camera.
+
+    - Automation Systems
+        Antennas can be integrated into automation systems to wirelessly trigger actions or events based on certain conditions. For instance, you can use an Antenna to activate machinery or open doors remotely when specific criteria are met.
+
+- SETTINGS
+    - int AntennaID
+        The ID of the antenna, to transmit to others with the same ID. Min 1, Max 9999
+
+- EXAMPLES
+    - Sending a Trigger Signal to other Antennas with the same ID.
+
+        -- Get the Antenna
+        local Antenna = GetPartFromPort(1, "Antenna")
+
+        -- Configure antennas with the same ID
+        antenna:Configure({ AntennaID = 7777 })
+
+        -- Triggers the Port the Antenna is Attached to.
+        TriggerPort(1)
+
+
+
+EXTRACTOR
+Extracts and harvests materials from connected terrain such as mountains and ore deposits. For example, to extract coal you attach it to the coal deposit, and configure the extractor to extract Coal. The extractor must be powered in order to work. Will not work if there's another powered extractor 50 studs away. If connected to a bin, it will supply that bin with the given material it is tasked to extract. Two powered extractors cannot be on the same ore deposit, or else they both will not function. If the materials can't be added to a bin, they will spawn in front of the hole on the front of the extractor. However, if the extractor is blocked by an object, it will not spew out any materials which prevents an increase on lag. When tasked to extract wood, it will extract any trees near it. Will start working the moment it gets powered. Generates 2 resources per second.
+
+- USAGES
+    - Resource Extraction
+        Extractors are commonly used to harvest valuable resources from natural terrain formations. Players can attach extractors to ore deposits, coal seams, or other resource-rich areas and configure them to extract specific materials, such as iron, coal, gold, or diamonds. This allows players to gather resources more efficiently and automate the mining process.
+
+    - Automated Mining Operations
+        Extractors can be deployed in automated mining operations to extract large quantities of materials from expansive mining sites. By connecting multiple extractors to a network of ore deposits and power sources, players can create fully automated mining facilities that continuously extract, process, and transport materials without manual intervention.
+
+- SETTINGS
+    - string MaterialToExtract
+        Determines the material to extract from connected natural surfaces.
+
+
+
+MININGLASER
+Fires a concentraded beam of energy when powered, which is used to mine objects such as asteroids, mountains and ore deposits. This works similar to an extractor, except it indirectly extracts power from other natural sources. When the laser hits an object, it will extract resources from that object and put it in attached bins. Very useful for creating mining vehicles to extract resources. The MiningLaser outputs 2 resources per second. However, the mining laser generates more heat than the extractor. Atleast 2 coolers are recommended per mining laser. Will start working the moment it gets powered.
+
+- USAGES
+    - Resource Extraction
+        MiningLaser parts are commonly used to extract resources from natural terrain features such as asteroids, mountains, and ore deposits. Players can attach MiningLaser parts to mining vehicles or stationary mining platforms and use them to extract resources.
+    
+    - Mining Vehicles
+        MiningLaser parts are often incorporated into mining vehicles designed for automated resource extraction. Players can build mining vehicles equipped with multiple MiningLaser parts to efficiently mine large areas and gather a variety of resources. These vehicles may be controlled manually by players or operate autonomously using programmed scripts or AI algorithms.
+
+- SETTINGS
+    - string MaterialToExtract
+        Determines the material to extract from the laser beam.
+
+
+
+WIRE
+Allows electrical objects to interact with each other when connected by wires. For example, attaching a wire between a powercell and a light will allow electricity to move through the wire, allowing the light to function causing a source of light to be created.
+
+
+
+CHUTE
+Is able to transfer solid parts between objects such as bins and extractors. Chutes can transfer more than one type of object. This means you can mix assemblers and extractors into the same system, no need for different chutes for each object. You can just make one long chute and connect your factory to it.
+
+
+
+PIPE
+Is able to transfer liquids and gases between containers and other objects when connected by pipes. Can transfer more than one type of object.
+
+
+
+FILTER
+Similar to a chute or a pipe, but only lets certain materials pass through.
+
+- USAGES
+    -Item Sorting
+        Filters can be used to sort items or components. Players can set up Filter systems to automatically sort incoming items into different Bins or Containers, making inventory management more organized and streamlined.
+
+- SETTINGS
+    - string Filter
+        The name of the material allowed to pass through. Only one material can be inputted.
+
+- EXAMPLES
+    - Cycling Filter Settings
+
+        -- Get the Filter part (assuming a specific port number)
+        local filter = GetPartFromPort(1, "Filter") -- Replace 1 with your Filter's port
+
+        -- List of materials to cycle through
+        local materials = {"Iron", "Copper", "Titanium"}  -- Add more materials as needed
+
+        local currentMaterialIndex = 1
+
+        -- Function to cycle the filter setting
+        local function cycleFilter()
+            local material = materials[currentMaterialIndex]
+            filter:Configure({ Filter = material })
+            print("Filter set to:", material)
+
+            currentMaterialIndex = currentMaterialIndex % #materials + 1  -- Increment index and wrap around
+        end
+
+        -- Start cycling every second
+        while task.wait(1) do
+            cycleFilter()
+        end
+
+
+
+HATCH
+Acts as a chute when active, but when inactive it acts as a normal object.
+
+- USAGES
+    - Resource Management
+        Hatches can be utilized in resource management systems where materials need to be transported or stored. When active, the Hatch functions as a chute, allowing materials to pass through it into designated storage containers or processing facilities. When inactive, it acts as a barrier, preventing materials from entering or exiting the designated area.
+
+- SETTINGS
+    - boolean SwitchValue
+        Determines whether the switch is active or not.
+
+
+
+ASSEMBLER
+Assembles items as configured when the structure is supplied with the required power and resources.
+
+- USAGES
+    - Manufacturing Facilities
+        Use Assemblers in manufacturing facilities or factories to produce goods or components in large quantities.
+    
+    - Resource Processing Centers
+        Incorporate Assemblers into resource processing centers to refine raw materials into usable products.
+    
+    - Construction Projects
+        Employ Assemblers in construction projects to assemble structures, vehicles, or other complex objects.
+
+- SETTINGS
+    - string Assemble
+        The name of the object to be assembled.
+
+
+
+CONSTRUCTOR
+Similar to an assembler, but constructs a player-built model when triggered. However, the constructor must be supplied with the correct materials for a model. For example, a car model requiring 50 iron and 3 a bin attached with 50 iron, a bin attached with 30 wires and 100 power. Has a 60 second cool down or a minute cooldown to prevent model spamming.
+
+- USAGES
+    - Base Construction
+        Use the Constructor to automatically construct predefined structures or buildings in your base, such as walls, towers, or rooms, using the supplied materials.
+    
+    - Vehicle Assembly
+        Employ the Constructor to assemble vehicles or spacecraft from component parts, such as engines, hulls, and weapons, provided that the required materials are available.
+    
+    - Equipment Deployment
+        Utilize the Constructor to deploy equipment or deployable structures, such as turrets, barricades, or supply stations, on-demand at strategic locations.
+    
+    - Resource Extraction
+        Integrate the Constructor into resource extraction systems to automatically construct mining rigs, drilling platforms, or processing facilities when resources are discovered and supplied
+
+- SETTINGS
+    - string ModelCode
+        The model data of the model to be created by the Constructor.
+    
+    - boolean AutoLock
+        Determines if the created model should be locked by the owner of the Constructor
+
+    - boolean RelativeToConstructor
+        Determines if the created model should be loaded in relative to the orientation of the Constructor.
+
+
+
+HYPERDRIVE
+A device used to travel at faster than light speeds to other regions of the universe. Simply input the coordinates to your destination and have a sufficient amount of fuel, and you'll be on your way to your destination. To initiate warping, power the hyperdrive and trigger it. When warping, the hyperdrive will be anchored to prevent any movement. The power required for warping will be dependent on the distance travelled, as well as the size of the object being transported. The amount of power required will be displayed in the hyper drive, shown in the red text. All of the parts connected to the hyperdrive and every player sitting will be teleported, however any free floating parts or standing up players will be sucked into the vaccum of space, so be careful. The red text at the bottom of the hyperdrive indicates how much power is needed to perform the jump.
+
+- USAGES
+    - Interstellar Travel
+        Use the Hyperdrive to travel between distant star systems or regions of the universe by inputting the coordinates of your destination and ensuring you have enough fuel for the journey.
+
+    - Military Operations
+        Incorporate Hyperdrives into military spacecraft for deployment of forces, strategic maneuvers, and surprise attacks on enemy targets across vast distances.
+
+    - Colonization Efforts
+        Enables colonization efforts by using Hyperdrives to transport settlers, infrastructure, and supplies to newly discovered habitable planets and star systems.
+
+- SETTINGS
+    - coordinate Coordinates
+        The coordinates to warp to.
+
+- METHODS
+    - void HyperDrive:GetRequiredPower()
+        Returns the required amount of power needed to make the jump.        
+
+
+
+GUN
+Fires a harmful bullet when triggered. Must be supplied with ammo in order to function. For example, you need an iron bin with 1 or more iron directly attached to it to work.
+
+- USAGES
+    - Defense Systems
+        Incorporate Guns into automated defense systems to protect bases, vehicles, or important structures from hostile entities such as enemy spacecraft, drones, or creatures.
+   
+    - Combat Vehicles
+        Equip combat vehicles, such as tanks, aircraft, or mechs, with Guns to engage in offensive operations and engage enemy targets during combat scenarios.
+   
+    - Security Stations
+        Install Guns at security stations or checkpoints to deter unauthorized access and defend key areas from intruders or hostile forces.
+    
+    - Hunter Drones
+        Attach Guns to hunter drones programmed to seek out and eliminate specific targets, such as aggressive wildlife or enemy units, in remote or hazardous environments.
+    
+    - Turrets
+        Mount Guns on stationary or rotating turrets to provide 360-degree coverage and defend against threats from all directions in a fixed position.
+    
+    - Patrol Drones
+        Use Guns on patrol drones to conduct perimeter patrols and respond to security breaches or hostile incursions in real-time.
+    
+    - Aerial Combat
+        Equip aircraft or spacecraft with Guns to engage in aerial combat and dogfights, providing offensive capabilities against enemy aerial threats.
+
+
+
+GRAVITYGENERATOR
+Generates an artificial gravity field when powered on. The gravity field only affects players, not individual parts. The amount of gravity can also be configureed, but the more gravity the higher amount of power needed. Only works in space, not inside planets.
+
+- USAGES
+    -Space Stations
+        Install GravityGenerators in space stations to simulate gravity for astronauts and personnel working and living in zero-gravity environments.
+    
+    - Spacecraft
+        Incorporate GravityGenerators into spacecraft designs to provide artificial gravity for crew members during long-duration space missions.
+    
+    - Asteroid Bases
+        Use GravityGenerators in asteroid bases or mining outposts to create a stable environment for workers and inhabitants. This allows them to move, work, and interact as they would in a planetary environment, improving productivity and quality of life.
+
+- SETTINGS
+    - int Gravity
+        The amount of gravity within the influence of the GravityGenerator. Min 30, Max 300.
+
+
+
+TELEPORTER
+A device used to transport players across regions. When powered and triggered, it will teleport all players in the beam to the given coordinates and teleporter id. It will warp the player to a teleporter in the region with the given teleporter id. When warping to a teleporter inside of a planet, set the last value to true. For example, 50, -50, 85, -75, true Make sure you set the correct coordinates OR YOU WILL BE STRANDED! Costs 1000 energy per teleport. Teleporter uses Energy regardless if a player is on the Teleporter at the moment it gets triggered.        
+
+- USAGES
+    - Inter-Base Transport
+        Use teleporters to create a network of teleportation hubs across your base or complex. This allows players to quickly move between different sections of the base without the need for long walks or vehicle transport.
+    
+    - Planetary Transport
+        Place teleporters at key locations on a planet's surface to facilitate rapid transport between distant points of interest. This is especially useful on large planets where travel by foot or vehicle would be time-consuming.
+    
+    - Space Station Access
+        Install teleporters on space stations to provide access to different sections such as crew quarters, laboratories, and hangars. This simplifies navigation within the station and improves operational efficiency.
+    
+    - Multi-Region Transport
+        Connect teleporters across different regions or worlds to enable long-distance travel between distant locations. This can be useful for creating a connected universe with diverse environments.
+
+    - Event Locations
+        Set up teleporters at event locations or gathering spots to allow players to easily teleport to the event area from anywhere in the game world.
+
+- SETTINGS
+    - coordinate Coordinates
+        The coordinates to your destination.
+
+    - int TeleporterID
+        The ID of the teleporter at the goal coordinates to teleport directly to. (Optional)
+
+    - boolean ForceLocalTeleport
+        Forces the Teleporter to transport the players into an another teleporter with the same TeleporterID in the region if true.         
+
+
+
+- USEFUL STUFF
+    - PORT CRAWLING
+        Port Crawling takes advantage of the fact that you can use parts as ports to get even more parts.
+            - EXAMPLES
+                local door1 = GetPartFromPort(1, "Door")
+                local door2 = GetPartFromPort(door1, "Door")
+                local MaxDoorAmount = 1001
+                local CurrentDoorAmount = 2
+
+                local Doors = {door1, door2} --Populates the table to avoid any errors.
+
+                local function DoorGet() --Gets every door attached to a door. Checks the attached doors' GUIDs to make sure its not the same as the previous door to avoid infinite loops, if it is then returns end but if it is not then adds the doors into the table.
+                    local doorNew = GetPartsFromPort(Doors[CurrentDoorAmount], "Door")
+                    for k, v in doorNew do
+                        local DoorGUID = v.GUID
+                        local PreviousDoorGUID = Doors[CurrentDoorAmount - 1]		
+                        if DoorGUID ~= Doors[CurrentDoorAmount - 1].GUID then
+                            table.insert(Doors, v)
+                        elseif DoorGUID == PreviousDoorGUID then
+                            return end
+                        end
+                    end
+
+                while CurrentDoorAmount <= MaxDoorAmount do
+                    DoorGet()
+                    Doors[CurrentDoorAmount]:Configure({DoorSwitch = true})
+                    CurrentDoorAmount = CurrentDoorAmount + 1
+                end
+
+    - WIRELESS PORTS
+        Wireless Ports are useful for wireless communication between Microcontrollers without the use of modems. "This is possible due to two things. Firstly, a callback function to a Triggered event has its first argument set to the part from which the trigger originated. Secondly, the GetPartFromPort() function can accept a Port instead of a PortID. Consider a basic example with two Microcontrollers. Each Microcontroller is connected to one Port, which is connected to one Antenna. Both Antennas have the same AntennaID. The transmitter Microcontroller is also connected to a Disk."
+            - EXAMPLES
+                --The transmitting microcontroller writes something into the disk then triggers the port its attached to.
+                local disk = GetPartFromPort(1, "Disk")
+                disk:Write("Key", "Hello World!")
+
+                TriggerPort(1)
+
+
+                --The receiver microcontroller listens for triggers to for triggers to the port its attached to. "The Triggered event callback function has one argument, which will be set internally to the part that originated the trigger. In this case, this is the Port of the transmitter Microcontroller. The receiver Microcontroller can then access the transmitter Microcontroller's Disk by querying the returned Port"
+                function callback(port)
+                    local disk = GetPartFromPort(port, "Disk")
+                    print(disk:Read("Key"))
+                end
+
+                GetPort(1):Connect("Triggered", callback)
+                --This will print "Hello World!"
+
+    - EVERY RESOURCE
+        Iron, Snow, Sulfur, Ice, Copper, 
+        Wood, Gold, Hydrogen, AlienCore, 
+        Beryllium, Silicon, Aluminum, Oil, Helium, 
+        Ruby, Stone, Petroleum, NitrogenOxide, Perfectium, 
+        Stick, Neutronium, Flint, Lead, Sand, ExoticMatter, 
+        Diamond, Quartz, Water, Coal, DarkMatter,
+        Glass, Gasoline, Steam, Jade, Magnesium, 
+        Grass, Titanium, Uranium, Plasma, NuclearWaste
+            
